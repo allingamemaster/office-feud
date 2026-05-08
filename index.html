@@ -162,7 +162,18 @@ input[type=text]:disabled{opacity:.45}
         <p>Join with a room code &amp; play</p>
       </div>
     </div>
-    <p style="color:var(--text2);font-size:13px;text-align:center">7 Rounds · Round 7 = Double Points · Up to 100 pts per round</p>
+    <p style="color:var(--text2);font-size:13px;text-align:center;margin-bottom:1.5rem">7 Rounds · Round 7 = Double Points · Up to 100 pts per round</p>
+    <div style="max-width:560px;background:var(--surf);border:1.5px solid rgba(245,197,24,.18);border-radius:14px;padding:1.25rem 1.5rem;text-align:left">
+      <div style="font-size:11px;letter-spacing:3px;text-transform:uppercase;color:var(--gold);margin-bottom:.75rem">How to Play</div>
+      <div style="font-size:14px;color:var(--text2);line-height:1.9">
+        🎯 &nbsp;We surveyed 100 people — your job is to guess what they said.<br>
+        ⏱ &nbsp;You have <strong style="color:var(--text)">15 seconds</strong> to type your answer each round.<br>
+        ✅ &nbsp;If your answer matches one on the board, you earn those points.<br>
+        ❌ &nbsp;Wrong answer? You get 3 attempts before the round locks you out.<br>
+        🔥 &nbsp;Round 7 is <strong style="color:var(--gold)">Double Points</strong> — every answer is worth twice as much.<br>
+        🏆 &nbsp;The player with the most points after all 7 rounds wins!
+      </div>
+    </div>
   </div>
 </div>
 
@@ -231,9 +242,12 @@ input[type=text]:disabled{opacity:.45}
   <div class="lb-t">🏆 LEADERBOARD</div>
   <div class="lb-s" id="lb-sub">Standings</div>
   <div class="lb-list" id="lb-list"></div>
-  <div class="row" style="justify-content:center;gap:12px">
-    <button class="btn btn-dim" onclick="showScreen('sc-hlobby')">← Lobby</button>
-    <button class="btn btn-gold btn-lg" id="lb-next">Continue →</button>
+  <div class="row" style="justify-content:center;gap:12px;flex-direction:column;align-items:center">
+    <button class="btn btn-gold btn-lg" id="lb-reveal-btn" style="display:none">▼ Show 2nd Place</button>
+    <div class="row" style="justify-content:center;gap:12px">
+      <button class="btn btn-dim" onclick="showScreen('sc-hlobby')">← Lobby</button>
+      <button class="btn btn-gold btn-lg" id="lb-next">Continue →</button>
+    </div>
   </div>
 </div>
 
@@ -394,7 +408,16 @@ function sUrg()    { beep(900, 'square', .08, .16); }
 function sReveal() { beep(523,'sine',.09,.26,0); beep(659,'sine',.1,.28,.11); beep(784,'sine',.14,.36,.22); }
 function sWrong()  { beep(200,'sawtooth',.13,.26,0); beep(140,'sawtooth',.17,.26,.1); }
 function sCorrect(){ beep(659,'sine',.09,.26,0); beep(784,'sine',.11,.3,.1); beep(1047,'sine',.18,.36,.21); }
-function sWin()    { [523,659,784,1047,1319,1568,2093].forEach((f,i) => beep(f,'sine',.14,.28,i*.09)); }
+function sWin() {
+  [0,.06,.12,.18,.22,.26].forEach(d => beep(80,'sawtooth',.04,.18,d));
+  const fanfare=[523,523,659,523,659,784,1047];
+  fanfare.forEach((f,i) => beep(f,'square',.18,.22,.5+i*.18));
+  [523,659,784,1047].forEach(f => beep(f,'sine',.6,.3,1.9));
+  const mel=[1047,880,784,880,1047,1047,1047,0,880,880,880,0,1047,1319,1319];
+  const startT=2.6;
+  for(let rep=0;rep<3;rep++){let t=startT+rep*2.2;mel.forEach(f=>{if(f)beep(f,'sine',.18,.28,t);t+=.15;});}
+  [523,659,784,1047,1319].forEach(f => beep(f,'sine',.9,.35,9.4));
+}
 
 let bgmOn = false;
 function bgmLoop() {
@@ -596,12 +619,11 @@ function showRndScores() {
   const ps = Object.values(rvPs).sort((a, b) => (b.roundPts || 0) - (a.roundPts || 0));
   document.getElementById('rv-scard').style.display = 'block';
   document.getElementById('rv-stbl').innerHTML =
-    `<tr><th>Player</th><th>This Round</th><th>Total Score</th></tr>` +
+    `<tr><th>Player</th><th>Points This Round</th></tr>` +
     ps.map(p =>
       `<tr>
         <td style="font-weight:700">${p.name}</td>
-        <td class="pts-c">${p.roundPts || 0}pts</td>
-        <td style="color:var(--text2)">${p.score || 0}pts</td>
+        <td class="pts-c">${p.roundPts || 0}</td>
       </tr>`
     ).join('');
 }
@@ -619,14 +641,17 @@ async function hostLB() {
   const ps = Object.values(d ? d.players : {}).sort((a, b) => (b.score || 0) - (a.score || 0));
   const med = ['🥇','🥈','🥉'], rc = ['r1','r2','r3'];
 
-  document.getElementById('lb-sub').textContent = qi >= 0 ? `After Round ${QS[Math.min(qi, 6)].r}` : 'Standings';
-  document.getElementById('lb-list').innerHTML = ps.length
+  document.getElementById('lb-sub').textContent = qi >= 0 ? `After Round ${QS[Math.min(qi, 6)].r}` : 'Final Standings';
+
+  // Build list — winner shown first, rest hidden, then revealed one by one
+  const list = document.getElementById('lb-list');
+  list.innerHTML = ps.length
     ? ps.map((p, i) => `
-        <div class="lbrow ${rc[i] || ''}">
+        <div class="lbrow ${rc[i] || ''}" id="lbrow-${i}" style="${i > 0 ? 'display:none' : ''}">
           <div class="lbrank">${i + 1}</div>
           <div class="lbmed">${med[i] || ''}</div>
           <div class="lbname">${p.name}</div>
-          <div class="lbsc">${p.score || 0}pts</div>
+          <div class="lbsc">${p.score || 0}</div>
         </div>`).join('')
     : '<p class="info" style="text-align:center">No players yet</p>';
 
@@ -642,6 +667,28 @@ async function hostLB() {
     nb.textContent = 'Start Round 1 →';
     nb.onclick = () => hostStart(0);
   }
+
+  // Show reveal button to unveil rest of rankings
+  const revBtn = document.getElementById('lb-reveal-btn');
+  if (ps.length > 1) {
+    revBtn.style.display = 'inline-block';
+    revBtn.textContent = `▼ Show 2nd Place (${ps.length - 1} more)`;
+    let shown = 1;
+    revBtn.onclick = () => {
+      if (shown < ps.length) {
+        document.getElementById('lbrow-' + shown).style.display = 'flex';
+        shown++;
+        if (shown < ps.length) {
+          revBtn.textContent = `▼ Show Next (${ps.length - shown} more)`;
+        } else {
+          revBtn.style.display = 'none';
+        }
+      }
+    };
+  } else {
+    revBtn.style.display = 'none';
+  }
+
   showScreen('sc-lb');
 }
 
@@ -666,7 +713,6 @@ async function pJoin() {
   document.getElementById('p-cb').textContent  = 'Room: ' + code;
   document.getElementById('p-cb').style.display = 'block';
   showScreen('sc-player');
-  startBGM();
   pPoll();
 }
 
