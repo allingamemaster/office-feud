@@ -362,8 +362,8 @@ const QS = [
   },
   {
     r: 3,
-    q: "Name something you never leave home without.",
-    a: [{ t: "Phone", p: 38 }, { t: "Keys", p: 28 }, { t: "Wallet or purse", p: 22 }, { t: "Earphones", p: 12 }]
+    q: "Name something you'd grab first if your house was on fire.",
+    a: [{ t: "Phone", p: 32 }, { t: "Passport or documents", p: 26 }, { t: "Kids or family", p: 18 }, { t: "Wallet or money", p: 14 }, { t: "Laptop", p: 10 }]
   },
   {
     r: 4,
@@ -372,8 +372,8 @@ const QS = [
   },
   {
     r: 5,
-    q: "Name something that comes in pairs.",
-    a: [{ t: "Shoes or socks", p: 30 }, { t: "Gloves", p: 24 }, { t: "Twins", p: 18 }, { t: "Earrings", p: 16 }, { t: "Eyes or ears", p: 12 }]
+    q: "Name something you'd do if you were invisible for a day.",
+    a: [{ t: "Spy on someone", p: 30 }, { t: "Rob a bank or steal", p: 24 }, { t: "Sneak into somewhere", p: 20 }, { t: "Scare people", p: 16 }, { t: "Skip work or school", p: 10 }]
   },
   {
     r: 6,
@@ -834,6 +834,15 @@ function fuzzy(player, correct) {
   if (pa.includes(ca) && ca.length > 2) return true;
   const syns = [
     ['phone','mobile','smartphone','cell','iphone'],
+    ['passport','documents','papers','id','identification'],
+    ['kids','children','family','baby','pets','dog','cat'],
+    ['wallet','money','cash','purse'],
+    ['laptop','computer','macbook','pc'],
+    ['spy','stalk','follow','watch','eavesdrop','listen'],
+    ['rob','steal','bank','money','shoplift','take things'],
+    ['sneak','break in','infiltrate','enter','trespass'],
+    ['scare','prank','haunt','frighten','spook'],
+    ['skip','ditch','avoid','not go','stay home'],
     ['drink','beverage','cocktail','beer','wine','glass','cup','bottle'],
     ['bag','purse','handbag','clutch'],
     ['shoes','sneakers','boots','heels','trainers','footwear'],
